@@ -1,0 +1,39 @@
+{% extends "master.html" %}
+{% block main_content %}
+    {% if error %}
+        <center>
+            <h3>{{ error }}</h3>
+        </center>
+    {% endif %}
+    <div class="row">
+        {% for item in products %}
+            <div class="col-lg-3 col-md-3 col-sm-12">
+                <div class="product-card">
+                    <span
+                            class="badge badge-pill badge-info pro-cat"
+                    >{{ item.category }}</span>
+                    <img style="height: 200px; object-fit: contain" src="{{ item['image'] }}" alt="Fjallraven Backpack">
+                    <div class="product-card-body">
+                        <div class="product-card-title product-title">{{ item['title'] }}</div>
+                        <div
+                                class="product-card-description product-description"
+                                style="margin-bottom: -5px;"
+                        >
+                            {{ item['description'] }}
+                        </div>
+                        <a
+                                target="_self"
+                                href="/detail/{{ item['id'] }}"
+                                style="cursor: pointer;text-align: right;text-decoration: underline; color: #186e95"
+                        >see more</a>
+                        <div class="product-card-footer">
+                            <span class="product-card-price text-danger">${{ item['price'] }}</span>
+                        </div>
+                        <button @click="addToCart({{ item }})" class="btn btn-sm btn-outline-success mt2 w-100">Add to Cart 🛒</button>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+{% endblock %}

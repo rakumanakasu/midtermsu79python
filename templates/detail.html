@@ -1,0 +1,40 @@
+{% extends "master.html" %}
+{% block main_content %}
+<div class="row" v-if="product">
+    <!-- Product Image -->
+    <div class="col-md-6 mb-4">
+        <div class="card shadow-sm p-4" style="border: none">
+            <img
+                style="height: 400px; object-fit: contain"
+                :src="'/static/uploads/' + product.image"
+                class="card-img-top img-fluid"
+                :alt="product.title">
+        </div>
+    </div>
+
+    <!-- Product Details -->
+    <div class="col-md-6">
+        <h3 class="mb-3">[[ product.title ]]</h3>
+        <span class="badge badge-secondary mb-2">[[ product.category ]]</span>
+        <h4 class="text-danger mb-3">$[[ product.price ]]</h4>
+        <p class="mb-4">[[ product.description ]]</p>
+
+        <div class="mb-4">
+            <label for="quantity" class="mr-2">Quantity:</label>
+            <input type="number" id="quantity" v-model.number="quantity" min="1"
+                   class="form-control d-inline-block" style="width: 80px;">
+        </div>
+
+        <button class="btn btn-primary btn-lg"
+                @click="addToCart(product, quantity)">
+            <i class="fa fa-shopping-cart"></i> Add to Cart
+        </button>
+    </div>
+</div>
+
+<div v-else>
+    <center>
+        <h3>Product not found</h3>
+    </center>
+</div>
+{% endblock %}

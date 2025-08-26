@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Title</title>
+    {% include "style.html" %}
+</head>
+<style>
+  /* subtle top accent + comfy height */
+  .fancy-nav { border-top: 3px solid #0d6efd0f; }
+
+  /* animated underline for nav links */
+  .nav-underline {
+    position: relative; font-weight: 600;
+  }
+  .nav-underline::after {
+    content: ""; position: absolute; left: .5rem; right: .5rem; bottom: .2rem;
+    height: 2px; background: linear-gradient(90deg, #4cc9f0, #4361ee);
+    transform: scaleX(0); transform-origin: left; transition: transform .18s ease;
+  }
+  .nav-underline:hover::after, .nav-underline.active::after { transform: scaleX(1); }
+
+  /* rounded search pill */
+  .search-wrap {
+    border: 1px solid rgba(0,0,0,.08);
+    border-radius: 999px; overflow: hidden; background: #f8f9fa;
+  }
+  .search-wrap .form-control:focus { box-shadow: none; background: #fff; }
+  .search-wrap .input-group-text { border: 0; }
+
+  /* cart badge offset for nicer placement */
+  .cart-btn .badge { transform: translate(-30%, -30%) !important; }
+</style>
+
+<body>
+<div id="app">
+    <div class="container-fluid p-0 m-0">
+      <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top fancy-nav">
+        <div class="container-fluid px-3">
+
+          <!-- Brand -->
+          <a class="navbar-brand d-flex align-items-center gap-2 fw-bold" href="/">
+            <i class="bi bi-bag-heart fs-4 text-primary"></i>
+            <img src="static/img/logo.png" alt="logo" class="img-fluid" style="width: 30px; height: 30px;">
+          </a>
+
+          <!-- Toggler -->
+          <button class="navbar-toggler" type="button"
+                  data-bs-toggle="collapse" data-bs-target="#mainNavbar"
+                  aria-controls="mainNavbar" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+
+          <!-- Nav + Search + Cart -->
+          <div class="collapse navbar-collapse" id="mainNavbar">
+            <!-- Left: links -->
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+              <li class="nav-item">
+                <a class="nav-link nav-underline active" aria-current="page" href="/">
+                  <i class="bi bi-grid me-1"></i> Catalog
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link nav-underline" href="/support">
+                  <i class="bi bi-life-preserver me-1"></i> Support
+                </a>
+              </li>
+            </ul>
+
+            <!-- Right: search + cart -->
+            <form class="d-flex align-items-center gap-2 my-2 my-lg-0 w-100 w-lg-auto">
+              <!-- Rounded search -->
+              <div class="input-group input-group-sm search-wrap">
+                <span class="input-group-text bg-transparent border-0 ps-2"><i class="bi bi-search"></i></span>
+                <input class="form-control border-0" type="search"
+                      placeholder="Search products…" aria-label="Search"
+                      v-model="searchQuery">
+                <button class="btn btn-light border-0 d-none d-sm-inline px-3" type="button"
+                        @click="searchQuery = ''" title="Clear">
+                  <i class="bi bi-x-lg"></i>
+                </button>
+              </div>
+
+              <!-- Cart -->
+              <a href="/cart" class="btn btn-primary position-relative cart-btn">
+                <i class="bi bi-cart3 me-1"></i>
+                <span class="d-none d-sm-inline">Cart</span>
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                  [[ cartCount ]]
+
+                </span>
+              </a>
+            </form>
+          </div>
+        </div>
+      </nav>
+
+    </div>
+
+    <div class="container">
+        {% block main_content %}{% endblock %}
+    </div>
+</div>
+
+{% include "script.html" %}
+
+<script>
+const { createApp, ref, computed, onMounted } = Vue;
+
+createApp({
+  delimiters: ['[[', ']]'],
+  setup() {
+    const cart_list = ref(JSON.parse(localStorage.getItem('cart') ?? '[]'));
+    const cartCount = computed(() =>
+      cart_list.value.reduce((total, item) => total + (item.qty || 1), 0)
+    );
+
+    const searchQuery = ref('');
+    const priceLimit = ref(500);
+    const selected_product = ref({});
+    const quantity = ref(1);
+
+    const products = ref({{ products|default([])|tojson|safe }});
+    const product = ref({{ product|default({})|tojson|safe }});
+
+    const subtotal = computed(() =>
+      cart_list.value.reduce((sum, item) => sum + item.price * item.qty, 0).toFixed(2)
+    );
+    const shipping = computed(() =>
+      cart_list.value.length > 0 ? 5.99 : 0
+    );
+    const tax = computed(() =>
+      (parseFloat(subtotal.value) * 0.1).toFixed(2)
+    );
+    const total = computed(() =>
+      (parseFloat(subtotal.value) + shipping.value + parseFloat(tax.value)).toFixed(2)
+    );
+
+    const filteredProducts = computed(() =>
+      products.value.filter(p =>
+        p.title.toLowerCase().includes(searchQuery.value.toLowerCase()) &&
+        p.price <= priceLimit.value
+      )
+    );
+
+    const addToCart = (item = product.value) => {
+      if (quantity.value < 1) {
+        alert('Quantity must be at least 1');
+        return;
+      }
+
+      const existing = cart_list.value.find(p => p.id === item.id);
+      if (existing) {
+        existing.qty += quantity.value;
+      } else {
+        cart_list.value.push({ ...item, qty: quantity.value });
+      }
+      localStorage.setItem('cart', JSON.stringify(cart_list.value));
+
+      Swal.fire({
+        icon: 'success',
+        title: 'Added to Cart',
+        text: `${item.name} x${quantity.value} added.`,
+        timer: 1200,
+        showConfirmButton: false
+      });
+    };
+
+    const removeCartItem = (index) => {
+      Swal.fire({
+        title: 'Are you sure?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, remove it!',
+        cancelButtonText: 'Cancel',
+      }).then(result => {
+        if (result.isConfirmed) {
+          cart_list.value.splice(index, 1);
+          localStorage.setItem('cart', JSON.stringify(cart_list.value));
+        }
+      });
+    };
+
+    const increaseQty = (item) => {
+      if (item.qty < 10) {
+        item.qty++;
+        localStorage.setItem('cart', JSON.stringify(cart_list.value));
+      }
+    };
+
+    const decreaseQty = (item, index) => {
+      if (item.qty > 1) {
+        // Just decrease if qty > 1
+        item.qty--;
+        localStorage.setItem('cart', JSON.stringify(cart_list.value));
+      } else {
+        // If qty = 1 → ask user before removing
+        Swal.fire({
+          title: 'Are you sure?',
+          text: 'This will remove the item from your cart.',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Yes, remove it!',
+          cancelButtonText: 'Cancel',
+        }).then(result => {
+          if (result.isConfirmed) {
+            cart_list.value.splice(index, 1);
+            localStorage.setItem('cart', JSON.stringify(cart_list.value));
+          }
+        });
+      }
+    };
+
+    const showProductDetail = (p) => {
+      selected_product.value = p;
+      $('#productModal').modal('show');
+    };
+
+    const isCartModalVisible = ref(false);
+    const showCartModal = () => {
+      isCartModalVisible.value = true;
+    };
+    const proceedToPurchase = () => {
+      isCartModalVisible.value = false;
+      window.location.href = "/cart";
+    };
+
+    const checkout = () => {
+      window.location.href = "/checkout";
+    };
+
+    onMounted(() => {
+      console.log("Cart loaded:", cart_list.value);
+      const form = document.getElementById('checkoutForm');
+      if (form) {
+        form.addEventListener('submit', () => {
+          const cartDataInput = document.getElementById('cart_data');
+          if (cartDataInput) {
+            cartDataInput.value = JSON.stringify(cart_list.value);
+          }
+        });
+      } else {
+        console.warn('checkoutForm not found in DOM!');
+      }
+    });
+
+    return {
+      cart_list,
+      cartCount,
+      products,
+      product,
+      selected_product,
+      searchQuery,
+      priceLimit,
+      filteredProducts,
+      quantity,
+      addToCart,
+      removeCartItem,
+      increaseQty,
+      decreaseQty,
+      showProductDetail,
+      subtotal,
+      shipping,
+      tax,
+      total,
+      isCartModalVisible,
+      showCartModal,
+      proceedToPurchase,
+      checkout
+    };
+  }
+}).mount('#app');
+</script>
+</body>
+</html>

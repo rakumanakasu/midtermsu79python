@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+  <title>Login</title>
+
+  <!-- Bootstrap 4.6 CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+
+  <!-- Optional: modern font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* =====================
+       THEME VARIABLES
+       Swap these to reskin quickly
+       ===================== */
+    :root {
+      --bg-1: #0b1020;           /* background gradient start */
+      --bg-2: #141a2e;           /* background gradient end */
+      --brand: #22c55e;          /* primary */
+      --brand-2: #16a34a;        /* primary dark */
+      --text: #e5e7eb;           /* light text */
+      --muted: #9ca3af;          /* subtle text */
+      --card: rgba(255,255,255,0.06);
+      --card-strong: rgba(255,255,255,0.12);
+      --ring: rgba(34,197,94,.35);
+      --shadow-1: 0 10px 30px rgba(0,0,0,.35);
+      --shadow-2: 0 12px 40px rgba(34,197,94,.22);
+    }
+
+    /* ===== Base ===== */
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: "Inter", system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial;
+      color: var(--text);
+      background: radial-gradient(1000px 600px at 20% 10%, rgba(34,197,94,.08), transparent 60%),
+                  radial-gradient(1000px 600px at 80% 90%, rgba(59,130,246,.08), transparent 60%),
+                  linear-gradient(135deg, var(--bg-1), var(--bg-2));
+      overflow: hidden;
+    }
+
+    /* Floating orbs */
+    .orb { position: fixed; filter: blur(60px); opacity: .35; z-index: 0; pointer-events: none; }
+    .orb.a { width: 280px; height: 280px; left: -60px; top: -60px; background: #22c55e; animation: float 14s ease-in-out infinite; }
+    .orb.b { width: 320px; height: 320px; right: -80px; bottom: -80px; background: #3b82f6; animation: float 18s ease-in-out infinite reverse; }
+    @keyframes float { 0%,100%{ transform: translateY(0) } 50%{ transform: translateY(-20px) } }
+
+    /* ===== Layout ===== */
+    .auth-shell { position: relative; z-index: 1; min-height: 100vh; display: grid; grid-template-columns: 1fr; }
+
+    @media (min-width: 992px){
+      .auth-shell { grid-template-columns: 1.1fr .9fr; }
+    }
+
+    .brand-pane { display: none; }
+    @media (min-width: 992px){
+      .brand-pane { display: grid; align-content: center; padding: 64px; }
+    }
+
+    .brand-card {
+      background: linear-gradient(145deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+      border: 1px solid var(--card-strong);
+      border-radius: 28px;
+      padding: 42px;
+      box-shadow: var(--shadow-1);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+
+    .brand-badge {
+      width: 72px; height: 72px; border-radius: 18px; display: grid; place-items: center; font-weight: 800; letter-spacing: .6px;
+      background: linear-gradient(135deg, var(--brand), var(--brand-2));
+      color: white; box-shadow: var(--shadow-2);
+    }
+
+    .brand-title { font-weight: 800; font-size: 2rem; margin: 18px 0 6px; }
+    .brand-sub { color: var(--muted); margin-bottom: 18px; }
+
+    .feature { display: flex; align-items: flex-start; margin-top: 14px; }
+    .feature svg { margin-right: 12px; flex: none; opacity: .9; }
+
+    /* ===== Form Pane ===== */
+    .form-pane { display: grid; align-content: center; padding: 32px 24px; }
+    @media (min-width: 576px){ .form-pane { padding: 48px; } }
+
+    .auth-card {
+      background: linear-gradient(145deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+      border: 1px solid var(--card-strong);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: var(--shadow-1);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .auth-head {
+      padding: 28px 28px 10px; text-align: center; border-bottom: 1px solid var(--card-strong);
+      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02));
+    }
+
+    .auth-title { font-weight: 800; margin: 6px 0 2px; }
+    .auth-sub { color: var(--muted); margin: 0; }
+
+    .auth-body { padding: 28px; }
+
+    /* ===== Inputs ===== */
+    label { font-weight: 600; color: #cbd5e1; }
+
+    .form-control {
+      color: #e5e7eb; background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.18); border-radius: 14px;
+      padding: .8rem 1rem; transition: box-shadow .15s ease, border-color .15s ease, background .15s ease;
+    }
+    .form-control::placeholder { color: #96a1b3; }
+    .form-control:focus {
+      color: #ffffff; background: rgba(255,255,255,.06);
+      border-color: var(--brand); box-shadow: 0 0 0 .25rem var(--ring);
+    }
+
+    .input-group .form-control { border-right: 0; border-radius: 14px 0 0 14px; }
+    .input-group .btn-ghost {
+      border: 1px solid rgba(255,255,255,.18); border-left: 0;
+      background: rgba(255,255,255,.04); color: #cbd5e1; font-weight: 600;
+      border-radius: 0 14px 14px 0; padding: .8rem 1rem;
+    }
+
+    /* ===== Buttons ===== */
+    .btn-primary {
+      background: linear-gradient(135deg, var(--brand), var(--brand-2)); border: none; border-radius: 14px;
+      padding: .85rem 1rem; font-weight: 700; letter-spacing: .2px; box-shadow: var(--shadow-2);
+      transition: transform .06s ease, box-shadow .18s ease;
+    }
+    .btn-primary:hover { transform: translateY(-1px); }
+    .btn-primary:active { transform: translateY(0); }
+
+    .helper-row { display: flex; align-items: center; justify-content: space-between; margin: 6px 0 18px; }
+    a.link { color: #93c5fd; text-decoration: none; }
+    a.link:hover { text-decoration: underline; }
+
+    .foot-note { text-align: center; color: var(--muted); margin-top: 16px; }
+
+    /* ===== Top Bar: Theme Toggle (mobile visible) ===== */
+    .topbar { position: fixed; top: 16px; right: 16px; z-index: 2; display: flex; gap: 8px; }
+    .btn-toggle {
+      background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.18);
+      color: #e5e7eb; padding: .5rem .75rem; border-radius: 12px; font-weight: 600;
+      backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+    }
+
+    /* ===== Light Theme Support ===== */
+    body.light {
+      --bg-1: #f3f4f6; --bg-2: #eef2ff; --text: #0f172a; --muted: #6b7280;
+      --card: rgba(255,255,255,1); --card-strong: rgba(0,0,0,.06);
+      color: var(--text);
+      background: linear-gradient(135deg, var(--bg-1), var(--bg-2));
+    }
+    body.light .brand-card, body.light .auth-card { background: #ffffff; box-shadow: 0 10px 30px rgba(2,6,23,.06); }
+    body.light .auth-head { background: linear-gradient(180deg, #ffffff, #fafafa); }
+    body.light label { color: #111827; }
+    body.light .form-control {
+      color: #111827; background: #ffffff; border-color: #e5e7eb;
+    }
+    body.light .form-control::placeholder { color: #9ca3af; }
+    body.light .input-group .btn-ghost { background: #f9fafb; color: #1f2937; border-color: #e5e7eb; }
+    body.light a.link { color: var(--brand-2); }
+
+  </style>
+</head>
+<body>
+  <!-- Background FX -->
+  <div class="orb a"></div>
+  <div class="orb b"></div>
+
+  <!-- Quick actions (theme toggle) -->
+  <div class="topbar">
+    <button id="themeToggle" class="btn btn-toggle">Toggle theme</button>
+  </div>
+
+  <main class="auth-shell">
+    <!-- Left / Brand pane -->
+    <section class="brand-pane">
+      <div class="brand-card">
+        <div class="brand-badge">BC</div>
+        <h2 class="brand-title">Welcome to Badminton Collection</h2>
+        <p class="brand-sub">Secure sign-in with a refreshed, accessible UI. Built on Bootstrap 4.6 with modern styling.</p>
+
+        <div class="feature">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20 6L9 17L4 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div>
+            <strong>Responsive</strong>
+            <div class="text-muted">Looks crisp on phones, tablets, and desktops.</div>
+          </div>
+        </div>
+
+        <div class="feature">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 1v4M12 19v4M4.22 4.22l2.83 2.83M16.95 16.95l2.83 2.83M1 12h4M19 12h4M4.22 19.78l2.83-2.83M16.95 7.05l2.83-2.83" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <div>
+            <strong>Themeable</strong>
+            <div class="text-muted">One click to switch between Dark and Light.</div>
+          </div>
+        </div>
+
+        <div class="feature">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <div>
+            <strong>Fast</strong>
+            <div class="text-muted">Minimal JS with graceful validation.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right / Form pane -->
+    <section class="form-pane">
+      <div class="auth-card">
+        <div class="auth-head">
+          <div class="brand-badge" style="width:58px;height:58px;border-radius:14px;">BC</div>
+          <h1 class="auth-title h3">Sign in</h1>
+          <p class="auth-sub">Use your account credentials to continue</p>
+        </div>
+        <div class="auth-body">
+          <form method="POST" action="/login" novalidate>
+            <div class="form-group">
+              <label for="username">Username</label>
+              <input
+                type="text"
+                class="form-control"
+                id="username"
+                name="username"
+                placeholder="Enter your username"
+                required
+                autocomplete="username"
+              />
+              <div class="invalid-feedback">Please enter your username.</div>
+            </div>
+
+            <div class="form-group">
+              <label for="password">Password</label>
+              <div class="input-group">
+                <input
+                  type="password"
+                  class="form-control"
+                  id="password"
+                  name="password"
+                  placeholder="Your password"
+                  required
+                  autocomplete="current-password"
+                />
+                <div class="input-group-append">
+                  <button class="btn btn-ghost" type="button" id="togglePassword" aria-label="Show password">Show</button>
+                </div>
+              </div>
+              <div class="invalid-feedback">Please enter your password.</div>
+            </div>
+
+            <div class="helper-row">
+              <div class="custom-control custom-checkbox">
+                <input type="checkbox" class="custom-control-input" id="remember" name="remember" />
+                <label class="custom-control-label" for="remember">Remember me</label>
+              </div>
+              <a class="link" href="/forgot-password">Forgot password?</a>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Login</button>
+            <p class="foot-note">Don't have an account? <a class="link" href="/register">Create one</a></p>
+          </form>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Bootstrap 4.6 JS dependencies -->
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.4/dist/jquery.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/js/bootstrap.min.js"></script>
+
+  <!-- Interactions: theme toggle, show/hide password, validation -->
+  <script>
+    (function(){
+      var pwd = document.getElementById('password');
+      var btn = document.getElementById('togglePassword');
+      btn && btn.addEventListener('click', function(){
+        var isHidden = pwd.type === 'password';
+        pwd.type = isHidden ? 'text' : 'password';
+        btn.textContent = isHidden ? 'Hide' : 'Show';
+        btn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+      });
+
+      // Client-side validation hinting (Bootstrap style)
+      var form = document.querySelector('form');
+      form.addEventListener('submit', function (e) {
+        if (form.checkValidity() === false) {
+          e.preventDefault();
+          e.stopPropagation();
+        }
+        form.classList.add('was-validated');
+      }, false);
+
+      // Theme toggle with localStorage
+      var themeToggle = document.getElementById('themeToggle');
+      var applyTheme = function(mode){ document.body.classList.toggle('light', mode === 'light'); }
+      var saved = localStorage.getItem('theme-mode');
+      if(saved){ applyTheme(saved); }
+      themeToggle.addEventListener('click', function(){
+        var now = document.body.classList.contains('light') ? 'dark' : 'light';
+        localStorage.setItem('theme-mode', now);
+        applyTheme(now);
+      });
+    })();
+  </script>
+</body>
+</html>

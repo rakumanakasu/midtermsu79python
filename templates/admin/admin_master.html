@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>Showme ADMIN 2 - Dashboard</title>
+
+  <!-- Fonts & Icons -->
+  <link href="../../static/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Nunito:200,300,400,600,700,800,900" rel="stylesheet">
+
+  <!-- SB Admin 2 CSS (Bootstrap 4 based) -->
+  <link href="../../static/css/sb-admin-2.min.css" rel="stylesheet">
+
+  <!-- jQuery first (required by Bootstrap 4 / SB Admin 2) -->
+  <script src="../../static/vendor/jquery/jquery.min.js"></script>
+
+  <!-- Bootstrap 4 (fixed broken src) -->
+  <script src="../../static/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+  <!-- Optional: jQuery Easing plugin -->
+  <script src="../../static/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+  <!-- SB Admin 2 scripts -->
+  <script src="../../static/js/sb-admin-2.min.js"></script>
+
+  <!-- Page level plugins (optional) -->
+  <script src="../../static/vendor/chart.js/Chart.min.js"></script>
+
+  <!-- Page level custom scripts (optional) -->
+  <script src="../../static/js/demo/chart-area-demo.js"></script>
+  <script src="../../static/js/demo/chart-pie-demo.js"></script>
+
+  <!-- Vue 3 and SweetAlert (you can keep if needed on admin pages) -->
+  <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- Minor visual refresh (keeps SB structure/behavior) -->
+  <style>
+    :root{
+      --brand-a:#4cc9f0;
+      --brand-b:#4361ee;
+    }
+    /* Sidebar brand refinement */
+    .sidebar .sidebar-brand {
+      height: 4.25rem;
+      font-weight: 800;
+      letter-spacing: .2px;
+    }
+    .sidebar .sidebar-brand .sidebar-brand-icon{
+      filter: drop-shadow(0 .25rem .5rem rgba(0,0,0,.15));
+    }
+    .sidebar .nav-item .nav-link{
+      border-radius:.5rem;
+      margin: .15rem .75rem;
+      padding: .6rem .9rem;
+      transition: background .15s ease, color .15s ease, transform .12s ease;
+    }
+    .sidebar .nav-item .nav-link:hover{
+      background: rgba(255,255,255,.15);
+      transform: translateX(2px);
+    }
+    /* Active item pop */
+    .sidebar .nav-item.active>.nav-link{
+      background: linear-gradient(135deg, var(--brand-a), var(--brand-b));
+      box-shadow: 0 .5rem 1rem rgba(0,0,0,.15);
+    }
+    .sidebar .nav-item.active .nav-link i,
+    .sidebar .nav-item.active .nav-link span{
+      color:#fff !important;
+    }
+
+    /* Topbar search → pill */
+    .navbar-search .input-group{
+      border:1px solid rgba(0,0,0,.08);
+      border-radius:999px; overflow:hidden;
+      background:#f8f9fc;
+    }
+    .navbar-search .form-control{
+      border:0; background:transparent;
+    }
+    .navbar-search .form-control:focus{ box-shadow:none; background:#fff; }
+    .navbar-search .input-group-append .btn{
+      border:0; border-left:1px solid rgba(0,0,0,.06);
+    }
+
+    /* Card polish */
+    .card{
+      border:0; border-radius:1rem;
+      box-shadow:0 .25rem 1rem rgba(0,0,0,.08);
+    }
+
+    /* Tiny lift on hover for clickable cards (if any) */
+    .hover-lift{ transition: transform .15s ease, box-shadow .15s ease; }
+    .hover-lift:hover{ transform: translateY(-3px); box-shadow:0 .75rem 1.5rem rgba(0,0,0,.12); }
+
+    /* Footer */
+    .sticky-footer{ border-top:1px solid rgba(0,0,0,.06); }
+
+    /* Fix nested wrapper spacing when content is tall */
+    #content{ padding-bottom: 1rem; }
+  </style>
+</head>
+
+<body id="page-top">
+
+  <!-- Page Wrapper -->
+  <div id="wrapper">
+
+    <!-- Sidebar -->
+    <ul class="navbar-nav bg-gradient-primary sidebar sidebar-dark accordion" id="accordionSidebar">
+
+      <!-- Sidebar - Brand -->
+      <a class="sidebar-brand d-flex align-items-center justify-content-center" href="/admin">
+        <div class="sidebar-brand-icon rotate-n-15">
+          <i class="fas fa-laugh-wink"></i>
+        </div>
+        <div class="sidebar-brand-text mx-3">ShowMe Admin</div>
+      </a>
+
+      <!-- Divider -->
+      <hr class="sidebar-divider my-0">
+
+      <!-- Nav Item - Dashboard -->
+      <li class="nav-item {% if request.path == '/admin' %}active{% endif %}">
+        <a class="nav-link" href="/admin">
+          <i class="fas fa-fw fa-tachometer-alt"></i>
+          <span>Dashboard</span>
+        </a>
+      </li>
+
+      <!-- Divider -->
+      <hr class="sidebar-divider">
+
+      <!-- Heading -->
+      <div class="sidebar-heading">Interface</div>
+
+      <!-- Nav Item - Products -->
+      <li class="nav-item {% if request.path == '/products' %}active{% endif %}">
+        <a class="nav-link collapsed" href="/products">
+          <i class="fas fa-fw fa-boxes"></i>
+          <span>Products</span>
+        </a>
+      </li>
+
+      <!-- You can add more sections/items here -->
+
+    </ul>
+    <!-- End of Sidebar -->
+
+    <!-- Content Wrapper -->
+    <div id="content-wrapper" class="d-flex flex-column">
+
+      <!-- Main Content -->
+      <div id="content">
+
+        <!-- Topbar -->
+        <nav class="navbar navbar-expand navbar-light topbar mb-4 static-top shadow" >
+
+          <!-- Sidebar Toggle (Topbar) -->
+          <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+            <i class="fa fa-bars"></i>
+          </button>
+
+          <!-- Topbar Search -->
+          <form class="d-none d-sm-inline-block form-inline mr-auto ml-md-3 my-2 my-md-0 mw-100 navbar-search">
+            <div class="input-group">
+              <input type="text" class="form-control bg-light border-0 small" placeholder="Search for..."
+                     aria-label="Search" aria-describedby="basic-addon2">
+              <div class="input-group-append">
+                <button class="btn btn-primary" type="button">
+                  <i class="fas fa-search fa-sm"></i>
+                </button>
+              </div>
+            </div>
+          </form>
+
+          <!-- Topbar Navbar -->
+          <ul class="navbar-nav ml-auto">
+
+            <!-- Search (XS) -->
+            <li class="nav-item dropdown no-arrow d-sm-none">
+              <a class="nav-link dropdown-toggle" href="#" id="searchDropdown" role="button"
+                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-search fa-fw"></i>
+              </a>
+              <div class="dropdown-menu dropdown-menu-right p-3 shadow animated--grow-in"
+                   aria-labelledby="searchDropdown">
+                <form class="form-inline mr-auto w-100 navbar-search">
+                  <div class="input-group">
+                    <input type="text" class="form-control bg-light border-0 small"
+                           placeholder="Search for..." aria-label="Search"
+                           aria-describedby="basic-addon2">
+                    <div class="input-group-append">
+                      <button class="btn btn-primary" type="button">
+                        <i class="fas fa-search fa-sm"></i>
+                      </button>
+                    </div>
+                  </div>
+                </form>
+              </div>
+            </li>
+
+
+
+            <!-- User -->
+            <li class="nav-item dropdown no-arrow">
+              <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <span class="mr-2 d-none d-lg-inline text-gray-600 small">Hea Heang</span>
+
+              </a>
+              <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                   aria-labelledby="userDropdown">
+                <a class="dropdown-item" href="#">
+                  <i class="fas fa-user fa-sm fa-fw mr-2 text-gray-400"></i>
+                  Profile
+                </a>
+                <a class="dropdown-item" href="#">
+                  <i class="fas fa-cogs fa-sm fa-fw mr-2 text-gray-400"></i>
+                  Settings
+                </a>
+                <a class="dropdown-item" href="#">
+                  <i class="fas fa-list fa-sm fa-fw mr-2 text-gray-400"></i>
+                  Activity Log
+                </a>
+                <div class="dropdown-divider"></div>
+                <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                  <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                  Logout
+                </a>
+              </div>
+            </li>
+          </ul>
+        </nav>
+        <!-- End of Topbar -->
+
+        <!-- Content area -->
+        <div class="container-fluid">
+          {% block admin_content %}{% endblock %}
+        </div>
+
+      </div>
+      <!-- End of Main Content -->
+
+      <!-- Footer -->
+      <footer class="sticky-footer bg-white">
+        <div class="container my-auto">
+          <div class="copyright text-center my-auto">
+            <span>Copyright &copy; Your Website 2021</span>
+          </div>
+        </div>
+      </footer>
+      <!-- End of Footer -->
+
+    </div>
+    <!-- End of Content Wrapper -->
+
+  </div>
+  <!-- End of Page Wrapper -->
+
+  <!-- Scroll to Top Button-->
+  <a class="scroll-to-top rounded" href="#page-top"><i class="fas fa-angle-up"></i></a>
+
+  <!-- Logout Modal-->
+  <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+       aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+          <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">×</span>
+          </button>
+        </div>
+        <div class="modal-body">Select "Logout" below if you are ready to end your current session.</div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+          <a class="btn btn-primary" href="/logout">Logout</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

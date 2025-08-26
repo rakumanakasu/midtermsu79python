@@ -1,0 +1,340 @@
+{% extends "admin/admin_master.html" %}
+{% block admin_content %}
+
+<div id="app_product" class="d-flex flex-column">
+  <div class="container-fluid">
+
+    <!-- Page Heading / Toolbar -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+      <h1 class="h3 mb-0 text-gray-800">Products</h1>
+
+      <div class="btn-toolbar gap-2">
+        <div @click="showAddModal" class="btn btn-gradient px-3 shadow-sm">
+          <i class="fas fa-plus fa-sm mr-1"></i> Add Product
+        </div>
+      </div>
+    </div>
+
+    <!-- Table Card -->
+    <div class="card table-card shadow-sm">
+      <div class="card-body p-0">
+
+        <div class="table-responsive">
+          <table class="table table-hover table-striped mb-0 align-middle pretty-table">
+            <thead class="sticky-top">
+              <tr>
+                <th class="w-1">ID</th>
+                <th>Name</th>
+                <th class="d-none d-md-table-cell">Category</th>
+                <th class="text-right">Price</th>
+                <th class="text-center">Image</th>
+                <th class="text-center w-1">Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr v-for="product in products" :key="product.id">
+                <td class="text-muted">[[ product.id ]]</td>
+
+                <td>
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="thumb-wrap mr-2">
+                      <img
+                        :src="product.image ? '/static/uploads/' + product.image : ''"
+                        alt="image"
+                        class="thumb-img"
+                      >
+                    </div>
+                    <div class="text-wrap">
+                      <div class="font-weight-600">[[ product.name ]]</div>
+                      <div class="small text-muted d-md-none">[[ product.category ]]</div>
+                    </div>
+                  </div>
+                </td>
+
+                <td class="d-none d-md-table-cell">
+                  <span class="badge badge-soft-primary">[[ product.category ]]</span>
+                </td>
+
+                <td class="text-right">
+                  <span class="price-pill">$[[ Number(product.price).toFixed(2) ]]</span>
+                </td>
+
+                <td class="text-center">
+                  <img
+                    :src="product.image ? '/static/uploads/' + product.image : ''"
+                    alt="image"
+                    width="80" height="50"
+                    class="img-mini"
+                  >
+                </td>
+
+                <td class="text-center">
+                  <div class="btn-group btn-group-sm" role="group">
+                    <button class="btn btn-soft-primary" @click="showEditModal(product)">
+                      <i class="fas fa-edit mr-1"></i> Edit
+                    </button>
+                    <button class="btn btn-soft-danger" @click="deleteProduct(product.id)">
+                      <i class="fas fa-trash-alt mr-1"></i> Delete
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+
+          </table>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Add/Edit Modal (unchanged logic) -->
+    <div class="modal fade" id="productModal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content rounded-lg">
+          <form @submit.prevent="saveProduct">
+            <div class="modal-header border-0">
+              <h5 class="modal-title">[[ modalTitle ]]</h5>
+              <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+
+            <div class="modal-body pt-0">
+              <div class="form-group">
+                <label>Name</label>
+                <input type="text" class="form-control" v-model="selectedProduct.name" required>
+              </div>
+              <div class="form-group">
+                <label>Category</label>
+                <input type="text" class="form-control" v-model="selectedProduct.category" required>
+              </div>
+              <div class="form-group">
+                <label>Price</label>
+                <input type="number" step="0.01" class="form-control" v-model.number="selectedProduct.price" required>
+              </div>
+              <div class="form-group">
+                <label>Image</label>
+                <input type="file" class="form-control" @change="onFileChange">
+                <div v-if="selectedProduct.image && !file" class="mt-2">
+                  <img :src="'/static/uploads/' + selectedProduct.image" width="120" class="rounded border" alt="current">
+                </div>
+              </div>
+            </div>
+
+            <div class="modal-footer border-0">
+              <button type="submit" class="btn btn-gradient">Save</button>
+              <button type="button" class="btn btn-ghost" data-dismiss="modal">Cancel</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  const {createApp, ref} = Vue;
+
+  createApp({
+    delimiters: ['[[', ']]'],
+    setup() {
+      const products = ref({{ products|tojson|safe }});
+      const selectedProduct = ref({});
+      const modalTitle = ref('Add Product');
+      const file = ref(null);
+
+      const showAddModal = () => {
+        selectedProduct.value = {};
+        file.value = null;
+        modalTitle.value = "Add Product";
+        $('#productModal').modal('show');
+      };
+
+      const showEditModal = (product) => {
+        selectedProduct.value = {...product};
+        file.value = null;
+        modalTitle.value = "Edit Product";
+        $('#productModal').modal('show');
+      };
+
+      const onFileChange = (event) => {
+        file.value = event.target.files[0];
+      };
+
+      const saveProduct = () => {
+        const formData = new FormData();
+        formData.append('name', selectedProduct.value.name);
+        formData.append('category', selectedProduct.value.category);
+        formData.append('price', selectedProduct.value.price);
+
+        if (file.value) formData.append('image', file.value);
+        if (selectedProduct.value.id) formData.append('current_image', selectedProduct.value.image || '');
+
+        const url = selectedProduct.value.id ? '/products/edit/' + selectedProduct.value.id : '/products/add';
+
+        fetch(url, { method: 'POST', body: formData })
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              Swal.fire('Success', data.message, 'success');
+
+              if (!selectedProduct.value.id) {
+                products.value.push(data.product);
+              } else {
+                const index = products.value.findIndex(p => p.id === selectedProduct.value.id);
+                if (index !== -1) products.value[index] = { ...selectedProduct.value, image: data.product.image };
+              }
+
+              $('#productModal').modal('hide');
+              file.value = null;
+              selectedProduct.value = {};
+            }
+          });
+      };
+
+      const deleteProduct = (id) => {
+        Swal.fire({
+          title: 'Are you sure?',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonText: 'Yes, delete!',
+        }).then((result) => {
+          if (result.isConfirmed) {
+            fetch('/products/delete/' + id, {method: 'POST'})
+              .then(res => res.json())
+              .then(data => {
+                if (data.success) {
+                  Swal.fire('Deleted!', data.message, 'success');
+                  products.value = products.value.filter(p => p.id !== id);
+                }
+              });
+          }
+        });
+      };
+
+      return {
+        products, selectedProduct, modalTitle,
+        showAddModal, showEditModal, saveProduct, deleteProduct,
+        file, onFileChange
+      };
+    }
+  }).mount('#app_product');
+</script>
+
+<!-- Styles for the new table look -->
+<style>
+  :root{
+    --brand-a:#4cc9f0;  /* accent we’ve been using */
+    --brand-b:#4361ee;  /* deep blue accent */
+    --blue:#0d6efd;     /* bootstrap primary */
+  }
+
+  /* Card shell */
+  .table-card{
+    border:0; border-radius:1rem;
+  }
+  .table-card .card-body{ border-radius:1rem; }
+
+  /* Pretty table */
+  .pretty-table thead tr{
+    background: linear-gradient(135deg, var(--brand-a), var(--brand-b));
+    color:#fff;
+  }
+  .pretty-table thead th{
+    border:0;
+    font-weight:700;
+    letter-spacing:.2px;
+    padding-top:.9rem; padding-bottom:.9rem;
+  }
+  .pretty-table tbody td{
+    vertical-align: middle;
+  }
+  .table.striped tbody tr:nth-of-type(odd){ background:#fff; }
+  .table.table-striped tbody tr:nth-of-type(odd){ background: #f9fbff; }
+  .table-hover tbody tr:hover{ background:#eef5ff; }
+
+  /* Sticky header */
+  .pretty-table thead.sticky-top { top: 0; z-index: 2; }
+
+  /* Thumbnails */
+  .thumb-wrap{
+    width:40px; height:40px; border-radius:.5rem; overflow:hidden;
+    background:#f3f6ff; border:1px solid rgba(13,110,253,.08);
+  }
+  .thumb-img{
+    width:100%; height:100%; object-fit:cover;
+  }
+  .img-mini{
+    border-radius:.4rem; object-fit:cover;
+    border:1px solid rgba(13,110,253,.12);
+  }
+  .img-mini:hover{ transform: scale(1.02); transition: transform .15s ease; }
+
+  /* Badges */
+  .badge-soft-primary{
+    background: rgba(13,110,253,.12);
+    color: #0d6efd;
+    font-weight:600;
+    border-radius: 999px;
+    padding:.35rem .6rem;
+  }
+
+  /* Price */
+  .price-pill{
+    background: #ffecef;
+    color: #b00020;
+    border-radius: 999px;
+    font-weight: 700;
+    padding: .25rem .55rem;
+  }
+
+  /* Buttons */
+  .btn-gradient{
+    background: linear-gradient(135deg, var(--brand-a), var(--brand-b));
+    color:#fff; border:0; border-radius:.7rem;
+  }
+  .btn-gradient:hover{ filter:brightness(0.98); color:#fff; }
+
+  .btn-soft-primary{
+    background: rgba(13,110,253,.12);
+    color:#0d6efd;
+    border:1px solid rgba(13,110,253,.2);
+    border-radius:.6rem;
+  }
+  .btn-soft-primary:hover{
+    background: rgba(13,110,253,.18);
+    color:#0a58ca;
+  }
+
+  .btn-soft-danger{
+    background: rgba(220,53,69,.1);
+    color:#dc3545;
+    border:1px solid rgba(220,53,69,.18);
+    border-radius:.6rem;
+  }
+  .btn-soft-danger:hover{
+    background: rgba(220,53,69,.16);
+    color:#bb2d3b;
+  }
+
+  .btn-ghost{
+    background: transparent;
+    color:#6c757d;
+    border:1px dashed rgba(108,117,125,.5);
+    border-radius:.6rem;
+  }
+  .btn-ghost:hover{
+    border-style: solid;
+    color:#495057;
+    background:#f8f9fa;
+  }
+
+  /* Tighten action column on large screens */
+  @media (min-width: 992px){
+    .w-1{ width:1%; white-space:nowrap; }
+  }
+
+  .font-weight-600{ font-weight:600; }
+</style>
+
+{% endblock %}

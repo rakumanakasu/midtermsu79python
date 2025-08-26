@@ -1,0 +1,200 @@
+{% extends "master.html" %}
+{% block main_content %}
+<style>
+  :root{
+    --brand-a:#4cc9f0;   /* accent used across your site */
+    --brand-b:#4361ee;   /* deep blue used in admin nav */
+  }
+
+  .cart-wrap .card{
+    border:0; border-radius:1rem; box-shadow:0 .25rem 1rem rgba(0,0,0,.08);
+  }
+  .cart-item:hover{ box-shadow:0 .75rem 1.5rem rgba(0,0,0,.12); transition: box-shadow .15s ease; }
+
+  /* Thumbs */
+  .thumb-lg{
+    width:140px; height:120px; border-radius:.75rem; overflow:hidden;
+    background:#f8fbff; border:1px solid rgba(13,110,253,.08);
+  }
+  .thumb-lg img{ width:100%; height:100%; object-fit:contain; padding:.5rem; }
+
+  /* Badges */
+  .badge-soft-primary{
+    background: rgba(67,97,238,.12);
+    color:#4361ee;
+    border-radius:999px; font-weight:600;
+    padding:.35rem .6rem;
+  }
+
+  /* Title + clamps */
+  .line-clamp-2{
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;
+  }
+
+  /* Price */
+  .price-pill{
+    display:inline-block;
+    background:#ffecef; color:#b00020;
+    border-radius:999px; font-weight:700;
+    padding:.25rem .7rem;
+  }
+
+  /* Quantity stepper (Bootstrap 4 input-group) */
+  .input-group-qty{
+    max-width: 140px;
+  }
+  .input-group-qty .form-control{
+    border-left:0; border-right:0;
+  }
+  .btn-qty{
+    background:#f1f4ff; color:#2b3a67;
+    border:1px solid rgba(67,97,238,.25);
+    width:38px;
+  }
+  .btn-qty:hover{
+    background:#e9edff;
+  }
+
+  /* Buttons */
+  .btn-gradient{
+    background: linear-gradient(135deg, var(--brand-a), var(--brand-b));
+    color:#fff; border:0; border-radius:.7rem;
+  }
+  .btn-gradient:hover{ filter:brightness(.98); color:#fff; }
+
+  .btn-soft-danger{
+    background: rgba(220,53,69,.1);
+    color:#dc3545;
+    border:1px solid rgba(220,53,69,.18);
+    border-radius:.6rem;
+  }
+  .btn-soft-danger:hover{
+    background: rgba(220,53,69,.16);
+    color:#bb2d3b;
+  }
+
+  .btn-ghost{
+    background: transparent;
+    color:#6c757d;
+    border:1px dashed rgba(108,117,125,.5);
+    border-radius:.6rem;
+  }
+  .btn-ghost:hover{
+    border-style: solid; background:#f8f9fa; color:#495057;
+  }
+
+  /* Summary card behavior */
+  .summary-card{ position: sticky; top: 1rem; }
+
+  /* Empty */
+  .empty-card{ border-style:dashed; border-width:2px; border-color:#e9ecef; }
+  .fw-600{ font-weight:600; } .fw-700{ font-weight:700; }
+</style>
+
+<div class="container cart-wrap mt-4">
+
+  <div class="d-flex align-items-center justify-content-between mb-3">
+    <h2 class="mb-0">Your Cart</h2>
+    <small class="text-muted d-none d-md-inline">[[ cart_list.length ]] item(s)</small>
+  </div>
+
+  <!-- Empty state -->
+  <div v-if="cart_list.length === 0" class="card empty-card text-center py-5">
+    <div class="card-body">
+      <div class="display-6 mb-2">Your cart is empty</div>
+      <p class="text-muted mb-4">Browse products and add your favorites to the cart.</p>
+      <a href="/" class="btn btn-gradient px-4">Continue Shopping</a>
+    </div>
+  </div>
+
+  <!-- Cart list + summary -->
+  <div class="row" v-else>
+    <div class="col-lg-8">
+      <!-- Item -->
+      <div class="card cart-item mb-3" v-for="(item, index) in cart_list" :key="item.id">
+        <div class="row no-gutters align-items-center">
+          <!-- Image -->
+          <div class="col-4 col-md-3 text-center p-3">
+            <div class="thumb-lg mx-auto">
+              <img
+                :src="'/static/uploads/' + item.image"
+                :alt="item.title"
+                class="img-fluid"
+              >
+            </div>
+          </div>
+
+          <!-- Info -->
+          <div class="col-8 col-md-6">
+            <div class="card-body py-3">
+              <h5 class="card-title mb-1 line-clamp-2">[[ item.title ]]</h5>
+              <p class="mb-1">
+                <span class="badge badge-soft-primary">[[ item.category ]]</span>
+              </p>
+              <p class="card-text small text-muted mb-0 line-clamp-2 product-description">
+                [[ item.description ]]
+              </p>
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <div class="col-12 col-md-3">
+            <div class="card-body pt-3 pt-md-0 text-center text-md-right">
+              <div class="price-pill mb-2">$[[ (item.price * item.qty).toFixed(2) ]]</div>
+
+              <div class="input-group input-group-qty mx-auto mx-md-0 mb-2">
+                <div class="input-group-prepend">
+                  <button class="btn btn-qty" type="button" @click="decreaseQty(item)">−</button>
+                </div>
+                <input type="text" class="form-control text-center" v-model="item.qty" readonly>
+                <div class="input-group-append">
+                  <button class="btn btn-qty" type="button" @click="increaseQty(item)">+</button>
+                </div>
+              </div>
+
+              <button @click="removeCartItem(index)" class="btn btn-soft-danger btn-sm">
+                <i class="fas fa-trash-alt mr-1"></i> Remove
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /Item -->
+    </div>
+
+    <!-- Summary -->
+    <div class="col-lg-4">
+      <div class="card summary-card">
+        <div class="card-body">
+          <h5 class="mb-3">Order Summary</h5>
+
+          <div class="d-flex justify-content-between py-1">
+            <span class="text-muted">Subtotal</span>
+            <span class="fw-600">${{ subtotal }}</span>
+          </div>
+          <div class="d-flex justify-content-between py-1">
+            <span class="text-muted">Shipping</span>
+            <span class="fw-600">${{ shipping }}</span>
+          </div>
+          <div class="d-flex justify-content-between py-1">
+            <span class="text-muted">Tax</span>
+            <span class="fw-600">${{ tax }}</span>
+          </div>
+          <hr>
+          <div class="d-flex justify-content-between py-1">
+            <span class="fw-700">Total</span>
+            <span class="fw-700 h5 mb-0">${{ total }}</span>
+          </div>
+
+          <button @click="checkout" class="btn btn-gradient btn-block mt-3 py-2">
+            Proceed to Checkout
+          </button>
+
+          <a href="/" class="btn btn-ghost btn-block mt-2">Continue Shopping</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
