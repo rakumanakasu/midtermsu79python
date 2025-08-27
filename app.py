@@ -31,6 +31,9 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 mail = Mail(app)
 
+if not os.path.exists("su79_database.sqlite3"):
+    import init_db
+
 # Telegram config
 BOT_TOKEN = '7511564601:AAF4Vh37VeaF-rA_55HnCgu40epIAPuD37A'
 CHAT_ID = '1253456651'
