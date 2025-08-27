@@ -12,6 +12,11 @@ from reportlab.pdfgen import canvas
 # Load environment variables (if using .env)
 load_dotenv()
 
+# if not os.path.exists("su79_database.sqlite3"):
+#     import init_db
+
+
+
 app = Flask(__name__)
 app.secret_key = 'your_flask_secret_key'
 
@@ -31,8 +36,12 @@ app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 mail = Mail(app)
 
-if not os.path.exists("su79_database.sqlite3"):
+try:
     import init_db
+except Exception as e:
+    print("Failed to initialize DB:", e)
+
+
 
 # Telegram config
 BOT_TOKEN = '7511564601:AAF4Vh37VeaF-rA_55HnCgu40epIAPuD37A'
